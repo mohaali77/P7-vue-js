@@ -6,9 +6,11 @@ const postSchema = mongoose.Schema({
     lastName: { type: String, required: true },
     firstName: { type: String, required: true },
     content: { type: String, required: true },
-    //imageUrl: { type: String, required: true },
+    imageUrl: { type: String, required: false },
     likes: { type: Number, default: 0 },
     usersLiked: { type: [String] },
+    dateStr: { type: String, required: true },
+    date: { type: Date, required: true }
 });
 
 //on exporte le modèle 
