@@ -1,13 +1,14 @@
+//On importe toutes les pages qui seront lié aux routes 
 import { createRouter, createWebHistory } from "vue-router";
 import Connexion from '../views/ConnexionView.vue'
 import Inscription from '../views/InscriptionView.vue'
 import Accueil from '../views/AccueilView.vue'
 import Modifier from '../views/ModifierView.vue'
 
-
+//on construit les routes
 const routes = [
     {
-        path: '/login',
+        path: '/',
         component: Connexion,
         name: 'login',
     },

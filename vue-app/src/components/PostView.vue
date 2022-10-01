@@ -3,12 +3,19 @@
     <div id="container">
         <div id='post'>
             <div id="post_title">Créer une nouvelle publication</div>
-            <form @submit.prevent="handleSubmit">
-                <textarea v-model='content' id="text" placeholder="Quoi de neuf ?"></textarea>
-                <div v-if="errorMsg" id="post_errorMsg">Vous devez insérer du texte et/ou une image !</div>
+            <form @submit.prevent="sendPost">
+                <textarea v-model='content' id="text"
+                    :placeholder="'Quoi de neuf ' + [ user.firstName ] + ' ?'"></textarea>
+                <div v-if="errorMsg" id="post_errorMsg">Vous devez insérer du texte !</div>
                 <div id="post_button">
-                    <input type='file' id="file" accept="image/*" @change=" uploadImage($event)">
-                    <i v-if="image" @click='image = null' class="fa-solid fa-xmark"></i>
+                    <div id="post_button_cross">
+                        <label for="file"><i class="fa-solid fa-image"></i>
+                            Ajouter une image
+                        </label>
+                        <input type='file' id="file" accept="image/*" @change=" uploadImage($event)">
+
+                        <i v-if="image" id="crossDelete" @click='image = null' class="fa-solid fa-xmark"></i>
+                    </div>
                     <input type="submit" value="Publier ">
                 </div>
             </form>
@@ -19,45 +26,53 @@
 
 <script>
 
+//on importe axios
 import axios from "axios";
 export default {
     name: 'PostView',
     data() {
         return {
-            user: null,
+            user: {
+                firstName: ''
+            },
             content: '',
             errorMsg: false,
             image: null
         }
     },
+    //Avec cette requête, on récupère les informations de l'utilisateur
     async created() {
-        const response = await axios.get('auth/user', {
+        await axios.get('auth/user', {
             headers: {
                 token: localStorage.getItem('token')
             }
-        });
-
-        this.user = response.data
-
+        }).then((response) => {
+            console.log(response);
+            this.user = response.data
+        })
+            .catch((error) => {
+                console.log(error);
+            })
     },
-
-
 
     methods: {
 
-        async handleSubmit(e) {
-            e.preventDefault()
+        //Cette fonction va permettre à l'utilisateur de créer une nouvelle publication
 
+        async sendPost() {
+
+            //on crée une variable date qui nous permettra d'afficher les éléments de la date souhaité,
+            //mais aussi pour pouvoir afficher les posts du plus récents au plus anciens.
+            const date = new Date()
+
+            //Si un utilisateur n'inscrit rien dans le champs pour le texte, un message d'erreur d'affiche
+            //Dans le cas contraire, la publication est bien envoyé 
             if (!this.content) {
                 this.errorMsg = true
             } else {
                 this.errorMsg = false
-            }
 
-            const date = new Date()
-
-            if (!this.errorMsg) {
-
+                //on crée un objet post qui sera envoyé dans la requête "post"
                 let post = {
 
                     'userId': this.user.userId,
@@ -66,26 +81,29 @@ export default {
                     'content': this.content,
                     'dateStr': date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes(),
                     'date': date,
-
                 }
 
                 const formData = new FormData();
                 formData.append("image", this.image);
                 formData.append("post", JSON.stringify(post));
 
-                const res = await axios.post('posts', formData, {
+                await axios.post('posts', formData, {
                     headers: {
                         authorization: 'Bearer ' + localStorage.getItem('token'),
-                        "Content-Type": "multipart/form-data",
+                        //"Content-Type": "multipart/form-data",
                     }
-                });
-
-                console.log(res);
-
-                location.reload()
+                }).then((response) => {
+                    console.log(response);
+                    location.reload()
+                })
+                    .catch((error) => {
+                        console.log(error);
+                    });
 
             }
-        }, uploadImage(event) {
+        },
+
+        uploadImage(event) {
             this.image = event.target.files[0]
         }
     }
@@ -143,6 +161,26 @@ export default {
                 justify-content: space-around;
                 margin: 5px;
 
+                #post_button_cross {
+                    display: flex;
+
+                    #crossDelete {
+                        color: #ff3333;
+                        font-size: 100%;
+                        vertical-align: middle;
+                        margin-top: 7px;
+                        margin-left: 3px;
+                        font-size: 20px;
+
+                        &:hover {
+                            transform: scale(1.15);
+                            cursor: pointer;
+                        }
+                    }
+                }
+
+
+
 
                 input[type="submit"] {
 
@@ -166,6 +204,8 @@ export default {
                 input[type="file"] {
                     display: none;
                 }
+
+
 
                 label {
                     background: #FFD7D7;

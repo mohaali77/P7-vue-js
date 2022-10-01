@@ -17,20 +17,24 @@
                     <div id='userPost_content'>
                         {{post.content}}
                     </div>
-                    <img :src='post.imageUrl' alt="" />
+                    <div id="divImage">
+                        <img :src='post.imageUrl' alt="" />
+                    </div>
                     <hr />
                     <div id="userPost_like_usersLike_delete_edit">
                         <div id="userPost_like_userLike">
                             <div @click="likePost(post._id)" id="userPost_like"><i :class="{'coeurRouge' : post.likes}"
                                     class="fa-solid fa-heart"></i>
                             </div>
-                            <div @click="likePost(post._id)" id="userPost_usersLike">{{post.likes}}</div>
+                            <div id=" userPost_usersLike">{{post.likes}}</div>
                         </div>
                         <div id="userPost_delete_edit">
-                            <div v-if="noDeleteNoEdit(post.userId)" @click="deletePost(post._id)" id="userPost_delete">
+                            <div v-if="canDeleteCanEdit(post.userId)" @click="deletePost(post._id)"
+                                id="userPost_delete">
                                 <i class="fa-solid fa-trash"></i>
                             </div>
-                            <div v-if="noDeleteNoEdit(post.userId)" id="userPost_edit">
+                            <div v-if="canDeleteCanEdit(post.userId)" id="userPost_edit">
+                                <!-- lien qui mène à la page de modification avec l'id du post comme paramètre -->
                                 <router-link :to="`/edit/${post._id}`"><i class="fa-solid fa-pen-to-square">
                                     </i></router-link>
                             </div>
@@ -43,7 +47,7 @@
 </template>
 
 <script>
-
+//on importe axios 
 import axios from 'axios'
 export default {
 
@@ -57,24 +61,37 @@ export default {
         }
     },
 
-    //RECUPERER le user et AFFICHER tout les posts
     async created() {
-        const response = await axios.get('auth/user', {
+
+        //Avec cette requête, on récupère les informations de l'utilisateur
+        await axios.get('auth/user', {
             headers: {
                 token: localStorage.getItem('token')
             }
-        });
+        }).then((response) => {
+            console.log(response);
+            this.user = response.data
+        })
+            .catch((error) => {
+                console.log(error);
+            });
 
-        const res = await axios.get('posts', {
+        //Avec cette requête, on récupère les informations des posts qui ont été ajouté pour pouvoir ensuite
+        //les affichés dans le DOM
+        await axios.get('posts', {
             headers: {
                 authorization: "Bearer " + localStorage.getItem('token')
             }
-        });
+        }).then((res) => {
+            console.log(res);
+            this.posts = res.data
+        })
+            .catch((error) => {
+                console.log(error);
+            });
 
-        this.user = response.data
-        this.posts = res.data
-
-        //gestion message noPost
+        //gestion du message lorsqu'il n'y a pas de post; 
+        //s'il y a aucun post le message s'affiche 
         if (this.posts.length > 0) {
             this.noPostMsg = false
             this.noPost = true
@@ -83,26 +100,24 @@ export default {
     }, methods: {
 
         //SUPPRIMER un post
+
+        //la variable id correspond à l'id des posts. La requête axios va donc supprimer uniquement le post avec l'id 
+        //sur lequel l'utilisateur aura cliqué.
         async deletePost(id) {
 
-            const res = await axios.delete(`posts/${id}`, {
+            await axios.delete(`posts/${id}`, {
                 headers: {
                     authorization: 'Bearer ' + localStorage.getItem('token')
                 }
 
             }).then((response) => {
-
+                location.reload()
                 console.log(response);
 
             })
                 .catch((error) => {
                     console.log(error);
                 });
-
-            location.reload()
-
-            console.log(res);
-
         },
 
         //AJOUTER un like à un post
@@ -118,23 +133,27 @@ export default {
             }).then((response) => {
 
                 this.posts.forEach(element => {
+                    console.log(response.data);
+                    console.log(response.data.like);
                     if (element._id == id) {
-                        response.like ? element.likes++ : element.likes--;
+                        response.data.like ? element.likes++ : element.likes--;
                     }
+
                 });
 
             })
                 .catch((error) => {
                     console.log(error);
                 });
-        },
-        goToModify() {
-            this.$router.push("/edit")
 
         },
 
-        noDeleteNoEdit(id) {
+        //fonction qui va permettre d'identifier si l'utilisateur connecté est bien celui qui a crée le post,
+        //si c'est le cas les icones modifier et supprimer seront affiché pour qu'il puisse agir sur le post,
+        canDeleteCanEdit(id) {
 
+            //si le userid de l'utilisateur est le même que l'userid du post, isValid retourne true et affiche donc
+            //les icones.
             let isValid = false
 
             if (id == this.user.userId) {
@@ -185,6 +204,23 @@ export default {
             color: #4E5166;
             border-radius: 10px;
             margin-bottom: 10px;
+
+            #divImage {
+
+                width: 100%;
+                display: grid;
+                place-items: center;
+                margin-top: 5px;
+
+
+                img {
+                    width: 70%;
+                    border-radius: 10px;
+                    margin: 5PX;
+                }
+            }
+
+
         }
 
         #userPost_name_date {
@@ -270,6 +306,10 @@ export default {
     @media screen and (max-width: 700px) {
         #allPost {
             width: 95%;
+        }
+
+        img {
+            padding: 0px;
         }
     }
 

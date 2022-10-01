@@ -48,7 +48,6 @@ exports.getOnePost = (req, res, next) => {
 
 //Modifier une post déjà existante
 exports.modifyPost = (req, res, next) => {
-  console.log('1   ');
   //on vérifie s'il y a un champs file
   const postObject = JSON.parse(req.body.post)
   if (req.file) {
@@ -60,25 +59,18 @@ exports.modifyPost = (req, res, next) => {
   //on récupère notre objet dans la BD
   Post.findOne({ _id: req.params.id })
     .then((post) => {
-      console.log('1   ')
       User.findOne({ _id: req.auth.userId })
         .then(user => {
-          console.log('1   ')
           //si l'userID de la base de données est différent de celui du TOKEN on renvoie une erreur
           if (post.userId != req.auth.userId && !user.isadmin) {
             res.status(401).json({ message: 'Non-autorisé' });
-            //on supprime l'image qui était présente et on accepte la modification
           }
           else {
-            console.log('1   ')
-            if (post.imageUrl) {
+            if (req.file && post.imageUrl) {
               const filename = post.imageUrl.split('/images/')[1];
               fs.unlink(`images/${filename}`, () => {
-                console.log('1   ')
-
               });
             }
-
             Post.updateOne({ _id: req.params.id }, { ...postObject, _id: req.params.id })
               .then(() => res.status(200).json({ message: 'Objet modifié!' }))
               .catch(error => res.status(401).json({ error }));
@@ -103,12 +95,18 @@ exports.deletePost = (req, res, next) => {
       if (post.userId != req.auth.userId) {
         res.status(401).json({ message: 'Not authorized' });
       } else {
-        // const filename = post.imageUrl.split('/images/')[1];
-        // fs.unlink(`images/${filename}`, () => {
-        Post.deleteOne({ _id: req.params.id })
-          .then(() => { res.status(200).json({ message: 'Objet supprimé !' }) })
-          .catch(error => res.status(500).json({ error }));
-        //});
+        if (post.imageUrl) {
+          const filename = post.imageUrl.split('/images/')[1];
+          fs.unlink(`images/${filename}`, () => {
+            Post.deleteOne({ _id: req.params.id })
+              .then(() => { res.status(200).json({ message: 'Objet supprimé !' }) })
+              .catch(error => res.status(500).json({ error }));
+          });
+        } else {
+          Post.deleteOne({ _id: req.params.id })
+            .then(() => { res.status(200).json({ message: 'Objet supprimé !' }) })
+            .catch(error => res.status(500).json({ error }));
+        }
       }
     })
     .catch(error => {

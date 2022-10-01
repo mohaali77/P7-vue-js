@@ -3,7 +3,6 @@
     <PostView />
     <AllPostView />
     <FooterView />
-
 </template>
   
 <script>

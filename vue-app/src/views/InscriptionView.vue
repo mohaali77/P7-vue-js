@@ -22,7 +22,7 @@
 
                 <div id="signUp_signIn_or">
                     <hr />
-                    <p>Vous avez déjà un compte ? <router-link to="/login">Connectez-vous</router-link>
+                    <p>Vous avez déjà un compte ? <router-link to="/">Connectez-vous</router-link>
                     </p>
                 </div>
             </div>
@@ -35,16 +35,12 @@
 
 <script>
 
+//on importe axios
 import axios from 'axios'
-
 
 export default {
 
-    name: 'ConnexionView', async created() {
-        if (localStorage.getItem('token')) {
-            this.$router.push("/accueil")
-        }
-    },
+    name: 'ConnexionView',
 
     data() {
         return {
@@ -59,47 +55,69 @@ export default {
 
         }
     },
-    methods: {
-        async handleSubmit(e) {
-            e.preventDefault()
 
+    //si un token valide est présent dans le localStorage on redirige automatiquement l'utilisateur vers l'accueil
+    async created() {
+        if (localStorage.getItem('token')) {
+            this.$router.push("/accueil")
+        }
+    },
+
+    methods: {
+        async handleSubmit() {
+
+            //Nom 
+            //Le message d'erreur ne s'affiche pas par défaut
             this.lastnameError = false;
+            //on définit ensuite une regex qui va définit les conditions
             let regexLastName = new RegExp(/^[a-zA-Z-\s]+$/);
+            //si la valeur de l'input ne respecte pas les conditions de la regex, le message s'affiche
             if (regexLastName.test(this.lastName) == false) {
                 this.lastnameError = true
             }
 
+            //Prénom
             this.firstnameError = false;
             let regexfirstname = new RegExp(/^[a-zA-Z-\s]+$/);
             if (regexfirstname.test(this.firstName) == false) {
                 this.firstnameError = true
             }
 
+            //Email
             this.emailError = false;
             let regexemail = new RegExp(/^[_a-z0-9-]+(.[_a-z0-9-]+)*@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,4})$/);
             if (regexemail.test(this.email) == false) {
                 this.emailError = true
             }
 
-            /*this.passwordError = false;
-            let regexpassword = new RegExp(/^[a-zA-Z-\s]+$/);
+            //Mot de passe
+            this.passwordError = false;
+            let regexpassword = new RegExp(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/);
             if (regexpassword.test(this.password) == false) {
                 this.passwordError = true
-            }*/
+            }
 
+            //Si tout les message d'erreur sont inexistant, on envoie les valeurs des inputs avec une requête axios
             if (!this.lastnameError && !this.firstnameError && !this.emailError && !this.passwordError) {
 
-                const response = await axios.post('auth/signup ', {
+                await axios.post('auth/signup ', {
 
                     firstName: this.firstName,
                     lastName: this.lastName,
                     email: this.email,
                     password: this.password
 
-                });
+                })
+                    .then((response) => {
+                        console.log(response);
+                        //On envoie la variable 'newUser' à la page de connexion qui permettra d'avertir l'utilisateur
+                        //que son compte à bien été créer.
+                        this.$router.push({ name: 'login', params: { newUser: true } })
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
 
-                console.log(response)
-                this.$router.push({ name: 'login', params: { newUser: true } })
             }
         }
     }
