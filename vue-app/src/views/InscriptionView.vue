@@ -17,6 +17,8 @@
                     <p v-if="emailError" id='signUp_errorMail'>Votre email n'est pas valide</p>
                     <input type='password' v-model='password' placeholder='Mot de passe'><br />
                     <p v-if="passwordError" id='signUp_errorPassword'>Votre mot de passe n'est pas valide</p>
+                    <p id="signUp_passWordIndication">Un mot de passe doit contenir au moins : 1 chiffre, 1 majuscule, 1
+                        minuscule, 8 caractères.</p>
                     <input type='submit' value="S'inscrire" id="signUp_button">
                 </form>
 

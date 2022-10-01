@@ -50,6 +50,13 @@
     color: #FD2D01;
 }
 
+#signUp_signIn #signUp form #signUp_passWordIndication {
+    font-size: 11px;
+    margin: 0px;
+    margin-top: -7px;
+    margin-bottom: 10px;
+}
+
 #signUp_signIn #signUp form #signUp_button {
     display: flex;
     justify-content: center;
