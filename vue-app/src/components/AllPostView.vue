@@ -23,8 +23,8 @@
                     <hr />
                     <div id="userPost_like_usersLike_delete_edit">
                         <div id="userPost_like_userLike">
-                            <div @click="likePost(post._id)" id="userPost_like"><i :class="{'coeurRouge' : post.likes}"
-                                    class="fa-solid fa-heart"></i>
+                            <div @click="likePost(post._id)" id="userPost_like"><i :class="{'coeurRouge' : post.usersLiked
+                            .includes(user.userId)}" class="fa-solid fa-heart"></i>
                             </div>
                             <div id=" userPost_usersLike">{{post.likes}}</div>
                         </div>
@@ -132,11 +132,21 @@ export default {
                 }
             }).then((response) => {
 
+                //on parcours chacun des posts pour récupérer
                 this.posts.forEach(element => {
                     console.log(response.data);
                     console.log(response.data.like);
+                    //on verifie que le post sur lequel on passe est le bon
                     if (element._id == id) {
+                        //on verifie si il y a une reponse, si la reponse est true on ajoute +1 sinon -1
                         response.data.like ? element.likes++ : element.likes--;
+                        //si la reponse est 'false' on va supprimer dans le tableau des likes, le usersid de l'utilisateur connecté
+                        if (!response.data.like) {
+                            element.usersLiked.splice(element.usersLiked.indexOf(this.user.userId), 1)
+                        } else {
+                            //sinon on l'ajoute
+                            element.usersLiked.push(this.user.userId)
+                        }
                     }
 
                 });
@@ -152,11 +162,11 @@ export default {
         //si c'est le cas les icones modifier et supprimer seront affiché pour qu'il puisse agir sur le post,
         canDeleteCanEdit(id) {
 
-            //si le userid de l'utilisateur est le même que l'userid du post, isValid retourne true et affiche donc
-            //les icones.
+            //si le userid de l'utilisateur est le même que l'userid du post ou que l'utilisateur est l'admin, 
+            //isValid retourne true et affiche donc les icones.
             let isValid = false
 
-            if (id == this.user.userId) {
+            if (id == this.user.userId || this.user.isAdmin) {
                 isValid = true
             }
 
@@ -214,7 +224,7 @@ export default {
 
 
                 img {
-                    width: 70%;
+                    width: 200px;
                     border-radius: 10px;
                     margin: 5PX;
                 }
@@ -250,11 +260,15 @@ export default {
                     i {
                         margin-right: 5px;
 
+                        &:hover {
+                            cursor: pointer;
+                            transform: scale(1.15);
+                        }
+
                         &.coeurRouge {
                             transform: scale(1.15);
                             color: #ff3333;
                             cursor: pointer;
-                            transition: 0.5;
                         }
                     }
                 }

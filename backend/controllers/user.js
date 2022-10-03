@@ -64,10 +64,10 @@ exports.login = (req, res, next) => {
 
 exports.user = (req, res, next) => {
     let token = req.headers.token; //token
-    jwt.verify(token, process.env.jwt_secret, (err, decoded) => {
-        if (err) return res.status(401).json({
-            title: 'unauthorized'
+    jwt.verify(token, process.env.jwt_secret, (jwtError, decoded) => {
+        if (jwtError) return res.status(401).json({
         })
+
         User.findOne({ _id: decoded.userId }, (err, user) => {
             if (err) return console.log(err)
             return res.status(200).json({
@@ -75,8 +75,8 @@ exports.user = (req, res, next) => {
                 email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                userId: user._id
-
+                userId: user._id,
+                isAdmin: user.isadmin
 
             })
         })

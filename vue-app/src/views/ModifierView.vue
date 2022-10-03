@@ -5,9 +5,11 @@
         <div id='post'>
             <h1 id="post_title">Modifier votre publication</h1>
             <form @submit.prevent="sendEdit">
-                <textarea v-model='content' id="text"></textarea>
-                <div v-if="errorMsg" id="post_errorMsg">Vous devez insérer du texte et/ou une image !</div>
-                <img :src='post.imageUrl' alt="">
+                <div id="post_content_image">
+                    <textarea v-model='content' id="text"></textarea>
+                    <div v-if="errorMsg" id="post_errorMsg">Vous devez insérer du texte et/ou une image !</div>
+                    <img v-if="imageUrlDom" :src='post.imageUrl' alt="">
+                </div>
                 <div id="post_button">
                     <div id="post_button_cross">
                         <input type='file' id="file" accept="image/*" @change=" uploadImage($event)">
@@ -17,7 +19,10 @@
                         <i v-if="image" id="crossDelete" @click='image = null' class="fa-solid fa-xmark"></i>
                     </div>
                     <input type="submit" value="Modifier ">
-                    <input @click="cancelButton" type="button" value="Annuler ">
+
+                    <input v-if="visibleCancelButton" @click="cancelButton" type="button" value="Annuler ">
+                    <input @click.prevent="deleteImagePost" v-if="deleteImageButton" type='button'
+                        value="Supprimer l'image ">
                 </div>
             </form>
         </div>
@@ -44,7 +49,9 @@ export default {
                 userId: ''
             },
             id: null,
-            image: null
+            image: null,
+            imageUrlDom: false,
+            visibleCancelButton: true
         };
     },
     components: { HeaderView, FooterView },
@@ -81,18 +88,49 @@ export default {
                 console.log(error);
             });
 
+
+        //Si il y a bien une image dans le post, on affiche l'image et un bouton qui permettra d'effacer l'image.
+        //Si il n'y a pas d'image, on masque la balise d'image ainsi que le bouton.
+        if (this.post.imageUrl) {
+            this.deleteImageButton = true
+            this.imageUrlDom = true
+        } else {
+            this.deleteImageButton = false
+            this.imageUrlDom = false
+        }
+
         //cette ligne permettra d'afficher le message du post directement dans l'input 
         this.content = this.post.content
 
         //si l'utilisateur se retrouve sur la page de modification d'un post qui ne lui appartient pas il sera 
         //redirigé vers la page d'accueil
-        if (this.user.userId != this.post.userId) {
+        if (this.user.userId != this.post.userId && !this.user.isAdmin) {
             this.$router.push('/accueil')
         }
 
     },
 
     methods: {
+
+        async deleteImagePost() {
+
+            await axios.delete(`posts/image/${this.id}`, {
+                headers: {
+                    authorization: 'Bearer ' + localStorage.getItem('token')
+                }
+
+            }).then((response) => {
+                //en cas de succès, on masque du DOM les boutons 'supprimer image', 'annuler', ainsi que l'image
+                this.imageUrlDom = false
+                this.deleteImageButton = false
+                this.visibleCancelButton = false
+                console.log(response);
+
+            })
+                .catch((error) => {
+                    console.log(error);
+                });
+        },
 
         //Cette fonction va permettre à l'utilisateur de modifier sa publication
         async sendEdit() {
@@ -120,6 +158,8 @@ export default {
 
                 }
 
+                //comme on joint une image dans notre requete, on doit utilisé la methode formdata qui permettra d'envoyer
+                //l'image et l'objet post
                 const formData = new FormData();
                 formData.append("image", this.image);
                 formData.append("post", JSON.stringify(post));
@@ -127,7 +167,7 @@ export default {
                 await axios.put('posts/' + this.id, formData, {
                     headers: {
                         authorization: 'Bearer ' + localStorage.getItem('token'),
-                        //"Content-Type": "multipart/form-data",
+
                     }
                 }).then((response) => {
                     //on est ensuite directement redirigé vers la page d'accueil
@@ -146,6 +186,7 @@ export default {
             this.$router.push('/accueil')
         },
 
+        //on recupere l'image qui a été téléchargé par l'input et on l'attribut à la variable image
         uploadImage(event) {
             this.image = event.target.files[0]
         }
@@ -190,22 +231,41 @@ body {
             justify-content: center;
             flex-wrap: wrap;
 
-            img {
-                width: 60%;
-                border-radius: 10px;
+            #post_content_image {
+
+                display: flex;
+                width: 100%;
+                justify-content: center;
+                align-items: center;
+
+                #text {
+                    width: 80%
+                }
+
+                img {
+                    object-fit: contain;
+                    height: 75px;
+                    border-radius: 10px;
+
+                    &.imgDisplayNone {
+                        display: none;
+                    }
+                }
+
+                #post_errorMsg {
+                    font-size: 12px;
+                    font-weight: bold;
+                    color: #ff3333;
+                    margin-bottom: 5px;
+                }
             }
 
-            #post_errorMsg {
-                font-size: 12px;
-                font-weight: bold;
-                color: #ff3333;
-                margin-bottom: 5px;
-            }
+
 
             #post_button {
                 display: flex;
                 width: 100%;
-                height: 33px;
+                flex-wrap: wrap;
                 justify-content: space-around;
                 margin: 5px;
 

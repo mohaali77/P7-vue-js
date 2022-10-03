@@ -27,7 +27,7 @@ footer {
     margin-top: 400px;
     background: #4E5166;
     margin: 0px;
-    height: 110px;
+    height: 114px;
 
     #menu {
         display: flex;

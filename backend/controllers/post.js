@@ -5,8 +5,6 @@ const fs = require('fs');
 
 //Création d'une nouvelle post
 exports.createPost = (req, res, next) => {
-  console.log('createpost');
-  console.log(req.body);
   const postObject = JSON.parse(req.body.post)
   //on supprime ces deux champs envoyé par la requête car nous ne devons pas faire confiance au client
   delete postObject._id;
@@ -71,9 +69,14 @@ exports.modifyPost = (req, res, next) => {
               fs.unlink(`images/${filename}`, () => {
               });
             }
+            // si lutilisateur est ladmin on garde le userid d'avant la modification
+            if (user.isadmin) {
+              postObject.userId = post.userId
+            }
             Post.updateOne({ _id: req.params.id }, { ...postObject, _id: req.params.id })
               .then(() => res.status(200).json({ message: 'Objet modifié!' }))
               .catch(error => res.status(401).json({ error }));
+
           }
         })
         .catch(error => {
@@ -92,22 +95,53 @@ exports.deletePost = (req, res, next) => {
   //on récupère notre objet dans la BD
   Post.findOne({ _id: req.params.id })
     .then(post => {
-      if (post.userId != req.auth.userId) {
-        res.status(401).json({ message: 'Not authorized' });
-      } else {
-        if (post.imageUrl) {
-          const filename = post.imageUrl.split('/images/')[1];
-          fs.unlink(`images/${filename}`, () => {
-            Post.deleteOne({ _id: req.params.id })
-              .then(() => { res.status(200).json({ message: 'Objet supprimé !' }) })
-              .catch(error => res.status(500).json({ error }));
-          });
-        } else {
-          Post.deleteOne({ _id: req.params.id })
-            .then(() => { res.status(200).json({ message: 'Objet supprimé !' }) })
-            .catch(error => res.status(500).json({ error }));
-        }
-      }
+      User.findOne({ _id: req.auth.userId })
+        .then(user => {
+          if (post.userId != req.auth.userId && !user.isadmin) {
+            res.status(401).json({ message: 'Not authorized' });
+          } else {
+            if (post.imageUrl) {
+              const filename = post.imageUrl.split('/images/')[1];
+              fs.unlink(`images/${filename}`, () => {
+                Post.deleteOne({ _id: req.params.id })
+                  .then(() => { res.status(200).json({ message: 'Objet supprimé !' }) })
+                  .catch(error => res.status(500).json({ error }));
+              });
+            } else {
+              Post.deleteOne({ _id: req.params.id })
+                .then(() => { res.status(200).json({ message: 'Objet supprimé !' }) })
+                .catch(error => res.status(500).json({ error }));
+            }
+          }
+        }).catch(error => {
+          res.status(500).json({ error });
+        });
+    })
+    .catch(error => {
+      res.status(500).json({ error });
+    });
+};
+
+exports.deleteImagePost = (req, res, next) => {
+  //on récupère notre objet dans la BD
+  Post.findOne({ _id: req.params.id })
+    .then(post => {
+      User.findOne({ _id: req.auth.userId })
+        .then(user => {
+          if (post.userId != req.auth.userId && !user.isadmin) {
+            res.status(401).json({ message: 'Not authorized' });
+          } else {
+            const filename = post.imageUrl.split('/images/')[1];
+            fs.unlink(`images/${filename}`, () => {
+              post.imageUrl = null
+              post.save()
+                .then(() => res.status(201).json({ message: "Nouveau post ajouté avec succès !" }))
+                .catch(error => res.status(400).json({ error }));
+            })
+          }
+        }).catch(error => {
+          res.status(500).json({ error });
+        });
     })
     .catch(error => {
       res.status(500).json({ error });
@@ -118,10 +152,7 @@ exports.deletePost = (req, res, next) => {
 exports.getAllPosts = (req, res, next) => {
   Post.find().then(
     (posts) => {
-      //
       posts.sort(function (a, b) {
-        // Turn your strings into dates, and then subtract them
-        // to get a value that is either negative, positive, or zero.
         return new Date(b.date) - new Date(a.date);
       });
       res.status(200).json(posts);
@@ -136,39 +167,33 @@ exports.getAllPosts = (req, res, next) => {
 };
 
 //Gestion des likes
-exports.postLikeDislike = (req, res, next) => {
+exports.postLike = (req, res, next) => {
   Post.findOne({ _id: req.params.id })
     .then((post) => {
 
       let likeIndex = post.usersLiked.findIndex((userId => userId == req.body.userId));
 
-      // Si l'utilisateur clique sur le like, on pousse son userID dans le tableau des likes, et on ajoute +1 au like
+      //Si l'utilisateur clique sur le like et qu'il n'est pas présent dans le tableau des utilisateurs
+      //qui ont likés, on pousse son userID dans le tableau des likes, on ajoute +1 au like, et on sauvegarde
       if (req.body.like === 1 && !post.usersLiked.includes(req.body.userId)) {
         post.usersLiked.push(req.body.userId);
         post.likes++;
         Post.updateOne({ _id: req.params.id }, post).then(() => {
           res.status(200).json({ message: "Like enregistré !", like: true });
         });
+        //Sinon si l'utilisateur a déjà liké, on le supprime du tableau des likes, on ajoute -1 au like, et on sauvegarde
       } else {
         if (likeIndex !== -1) {
           post.usersLiked.splice(likeIndex, 1)
           post.likes--;
           Post.updateOne({ _id: req.params.id }, post).then(() => {
-            res.status(200).json({ message: "Like enlevé !", like: false });
+            res.status(200).json({ message: "Like retiré !", like: false });
           });
         }
       }
-      //Si l'utilisateur enlève son like, le likeIndex va aller chercher l'userID dans le tableau des likes 
-      //et va le supprimer, on enlève ensuite 1 au tableau des likes. Pareil pour les dislikes.
 
-      //on met à jour la gestion des likes de la post
-
-
-      //console.log(req.body.like)
       console.log("tableau des likes :")
       console.log(post.usersLiked);
-
-
     }
     ).catch(
       (error) => {
@@ -179,5 +204,3 @@ exports.postLikeDislike = (req, res, next) => {
       }
     );
 };
-
-//revoir isadmin
