@@ -69,9 +69,11 @@ exports.modifyPost = (req, res, next) => {
               fs.unlink(`images/${filename}`, () => {
               });
             }
-            // si lutilisateur est ladmin on garde le userid d'avant la modification
+            // si lutilisateur est ladmin on garde le userid, le nom et le prénom d'avant la modification
             if (user.isadmin) {
               postObject.userId = post.userId
+              postObject.firstName = post.firstName
+              postObject.lastName = post.lastName
             }
             Post.updateOne({ _id: req.params.id }, { ...postObject, _id: req.params.id })
               .then(() => res.status(200).json({ message: 'Objet modifié!' }))

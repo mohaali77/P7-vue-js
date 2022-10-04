@@ -1,0 +1,150 @@
+#container2 {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    background: #FFD7D7;
+
+    #allPost {
+        background: #4E5166;
+        border: transparent solid 1px;
+        border-radius: 10px;
+        margin-top: 30px;
+        width: 70%;
+        display: flex;
+        flex-direction: column;
+        padding: 5px;
+        margin-bottom: 27px;
+
+        #noUserPost {
+            color: #FFD7D7;
+            font-size: 19px;
+            text-align: center;
+            margin: 20px 0px 50px 0px;
+        }
+
+        #userPost {
+            margin-left: 10px;
+            margin-right: 10px;
+            border: solid;
+            padding: 10px;
+            background: #FFD7D7;
+            color: #4E5166;
+            border-radius: 10px;
+            margin-bottom: 10px;
+
+            #divImage {
+
+                width: 100%;
+                display: grid;
+                place-items: center;
+                margin-top: 5px;
+
+
+                img {
+                    width: 200px;
+                    border-radius: 10px;
+                    margin: 5PX;
+                }
+            }
+
+
+        }
+
+        #userPost_name_date {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: center;
+
+            #userPost_name {
+                margin-right: 5px;
+            }
+
+            #userPost_date {
+                font-size: 12px;
+                margin-top: 3px;
+
+            }
+        }
+
+        #userPost_like_usersLike_delete_edit {
+            display: flex;
+            justify-content: space-between;
+
+            #userPost_like_userLike {
+                display: flex;
+
+                #userPost_like {
+                    i {
+                        margin-right: 5px;
+
+                        &:hover {
+                            cursor: pointer;
+                            transform: scale(1.15);
+                        }
+
+                        &.coeurRouge {
+                            transform: scale(1.15);
+                            color: #ff3333;
+                            cursor: pointer;
+                        }
+                    }
+                }
+            }
+
+            #userPost_delete_edit {
+                display: flex;
+
+                #userPost_delete {
+                    i {
+                        margin-right: 5px;
+
+                        &:hover {
+
+                            transform: scale(1.15);
+                            cursor: pointer;
+                        }
+                    }
+                }
+
+                #userPost_edit {
+
+                    a {
+                        text-decoration: none;
+                        color: #4E5166;
+                    }
+
+                    i {
+                        &:hover {
+
+                            transform: scale(1.15);
+                            cursor: pointer;
+                        }
+                    }
+                }
+
+            }
+
+        }
+    }
+
+    p {
+        font-size: 19px;
+        color: #FFD7D7;
+        width: 100%;
+        text-align: center;
+    }
+
+    @media screen and (max-width: 700px) {
+        #allPost {
+            width: 95%;
+        }
+
+        img {
+            padding: 0px;
+        }
+    }
+
+
+
+}

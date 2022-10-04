@@ -50,39 +50,6 @@ export default {
 }
 </script>
   
-<style scoped>
-@import "../assets/css/header.css";
-
-@media screen and (max-width: 700px) {
-
-    header {
-        height: 100px;
-    }
-
-    header #menu {
-        justify-content: center;
-    }
-
-    header #menu img {
-        width: 250px;
-        margin-left: 0px;
-    }
-
-    header #menu #menu_deconnexion {
-        font-size: 16px;
-        margin-right: 0px;
-
-    }
-
-    header #menu {
-        display: flex;
-        list-style-type: none;
-        align-items: center;
-        padding: 0px;
-        font-size: 17px;
-        margin: 0px;
-        height: 80px;
-        flex-direction: column;
-    }
-}
+<style lang="scss" scoped>
+@import "../assets/scss/HeaderView.scss";
 </style>

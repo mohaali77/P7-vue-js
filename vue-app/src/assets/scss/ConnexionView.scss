@@ -1,0 +1,166 @@
+main {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 150px;
+    margin-right: 50px;
+    position: relative;
+    z-index: 2;
+
+    #logo {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        left: 90px;
+        top: 90px;
+
+        img {
+            width: 350px;
+        }
+
+        #logo_sentence {
+            font-size: 25px;
+            color: #4E5166;
+            font-weight: bold;
+            width: 410px;
+        }
+    }
+
+
+
+    #signUp_signIn {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border: solid transparent;
+        box-shadow: black 0px 1px 5px 0px;
+        border-radius: 10px;
+        padding: 15px;
+        background-color: #FFD7D7;
+        width: 30%;
+
+        #signIn {
+            display: flex;
+            flex-direction: column;
+
+            form {
+                display: flex;
+                flex-direction: column;
+
+                #signIn_successSignUp {
+                    font-size: 14px;
+                    font-weight: bold;
+                    color: #4BB543;
+                    text-align: center;
+                }
+
+                #signIn_title {
+                    font-size: 20px;
+                    margin-top: 10px;
+                    margin-bottom: 20px;
+                    color: #4E5166;
+                    font-weight: bold;
+                    text-align: center;
+                }
+
+                input {
+                    padding: 5px;
+                }
+
+                .signIn_errorPassword {
+                    margin-top: -15px;
+                    font-size: 12px;
+                    margin-left: 2px;
+                    color: #FD2D01;
+                }
+
+                #signIn_button {
+                    display: flex;
+                    justify-content: center;
+                    border: solid transparent;
+                    border-radius: 10px;
+                    box-shadow: black 0px 1px 5px 0px;
+                    padding: 10px;
+                    font-size: 15px;
+                    font-weight: bold;
+                    background: #4E5166;
+                    color: white;
+
+                    &:hover {
+                        cursor: pointer;
+                    }
+                }
+            }
+
+        }
+
+        #signUp_signIn_or {
+            text-align: center;
+            font-size: 17px;
+            margin-top: 20px;
+
+            p {
+                margin: 0px;
+                font-size: 12px;
+
+                a {
+                    font-weight: bold;
+                    color: #FD2D01;
+                }
+            }
+        }
+    }
+}
+
+body {
+    height: 0;
+}
+
+#background_photo {
+    width: 100%;
+    height: 100%;
+
+    img {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        opacity: 0.1;
+        object-fit: cover;
+    }
+}
+
+@media screen and (max-width: 830px) {
+    main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 0px;
+        margin-right: 0px;
+
+        #signUp_signIn {
+            width: 70%;
+        }
+
+        #logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: initial;
+
+            #logo_sentence {
+                font-size: 20px;
+                width: 70%;
+                text-align: center;
+                margin-bottom: 30px;
+            }
+
+            img {
+                width: 70%;
+                margin-bottom: 10px;
+                margin-top: 20px;
+            }
+        }
+    }
+}

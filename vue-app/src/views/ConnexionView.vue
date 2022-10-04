@@ -101,7 +101,7 @@ export default {
 
 </script>
 
-<style scoped>
-@import '../assets/css/signIn.css';
+<style lang="scss" scoped>
+@import '../assets/scss/ConnexionView.scss';
 </style>
 

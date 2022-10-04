@@ -127,7 +127,7 @@ export default {
 
 </script>
 
-<style scoped>
-@import '../assets/css/signUp.css';
+<style lang="scss" scoped>
+@import '../assets/scss/InscriptionView.scss';
 </style>
 
