@@ -13,11 +13,11 @@ exports.createPost = (req, res, next) => {
     ...postObject,
     //ici on récupère le userId extrait du token par le middleware d’authentification.
     userId: req.auth.userId,
-    //on génère l'URL de l'image
     likes: 0,
     usersLiked: [],
 
   });
+  //Si le post comporte une image, on génère l'URL de l'image
   if (req.file) {
     post.imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
   }
@@ -46,12 +46,11 @@ exports.getOnePost = (req, res, next) => {
 
 //Modifier une post déjà existante
 exports.modifyPost = (req, res, next) => {
-  //on vérifie s'il y a un champs file
   const postObject = JSON.parse(req.body.post)
+  //on vérifie s'il y a un champs file si c'est le cas on génère l'url de l'image
   if (req.file) {
     postObject.imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
   }
-
   //on supprime le userID de la requête pour empêché l'utilisateur de réassigner l'objet à un autre utilisateur
   delete postObject._userId;
   //on récupère notre objet dans la BD
@@ -64,6 +63,7 @@ exports.modifyPost = (req, res, next) => {
             res.status(401).json({ message: 'Non-autorisé' });
           }
           else {
+            //si une image est sélectionné, et qu'il y a dejà une image dans le post, on supprime l'image du post
             if (req.file && post.imageUrl) {
               const filename = post.imageUrl.split('/images/')[1];
               fs.unlink(`images/${filename}`, () => {
@@ -99,9 +99,11 @@ exports.deletePost = (req, res, next) => {
     .then(post => {
       User.findOne({ _id: req.auth.userId })
         .then(user => {
+          //si l'userID de la base de données est différent de celui du TOKEN on renvoie une erreur et qu'il n'est pas l'admin
           if (post.userId != req.auth.userId && !user.isadmin) {
             res.status(401).json({ message: 'Not authorized' });
           } else {
+            //si il y a une image dans le post, on la supprime avant de supprimer le post. 
             if (post.imageUrl) {
               const filename = post.imageUrl.split('/images/')[1];
               fs.unlink(`images/${filename}`, () => {
@@ -109,6 +111,7 @@ exports.deletePost = (req, res, next) => {
                   .then(() => { res.status(200).json({ message: 'Objet supprimé !' }) })
                   .catch(error => res.status(500).json({ error }));
               });
+              //sinon on supprime tout simplement le post
             } else {
               Post.deleteOne({ _id: req.params.id })
                 .then(() => { res.status(200).json({ message: 'Objet supprimé !' }) })
@@ -124,12 +127,14 @@ exports.deletePost = (req, res, next) => {
     });
 };
 
+//suppression d'une image du post
 exports.deleteImagePost = (req, res, next) => {
   //on récupère notre objet dans la BD
   Post.findOne({ _id: req.params.id })
     .then(post => {
       User.findOne({ _id: req.auth.userId })
         .then(user => {
+          //si l'userID de la base de données est différent de celui du TOKEN on renvoie une erreur et qu'il n'est pas l'admin
           if (post.userId != req.auth.userId && !user.isadmin) {
             res.status(401).json({ message: 'Not authorized' });
           } else {
